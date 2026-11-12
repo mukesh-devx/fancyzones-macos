@@ -5,6 +5,11 @@
 
 local M = {}
 
+--- hs.settings key where the gap chosen in the editor is remembered.
+M.SPACING_SETTING = "fancyzones.spacing"
+M.MAX_SPACING = 48
+M.SPACING_STEP = 2
+
 function M.defaults()
   return {
     -- Hotkey that opens/closes the zone editor.
@@ -137,6 +142,10 @@ function M.validate(cfg)
       warn(key .. " must be a number >= 0; using default")
       cfg[key] = M.defaults()[key]
     end
+  end
+  if cfg.spacing > M.MAX_SPACING then
+    warn("spacing is limited to " .. M.MAX_SPACING)
+    cfg.spacing = M.MAX_SPACING
   end
   return cfg, warnings
 end

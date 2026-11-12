@@ -50,6 +50,11 @@ function M.start(userConfig)
   if loaded == false and loadMsg then hs.alert.show(loadMsg, 6) end
 
   windows.setExcludedApps(cfg.excludedApps)
+  -- A gap chosen in the editor is remembered and wins over the config value.
+  local savedGap = hs.settings.get(config.SPACING_SETTING)
+  if type(savedGap) == "number" and savedGap >= 0 and savedGap <= config.MAX_SPACING then
+    cfg.spacing = savedGap
+  end
   local palette = theme.build(cfg.theme)
 
   local overlay = Overlay.new(cfg, palette)

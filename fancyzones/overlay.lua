@@ -88,7 +88,7 @@ end
 --- (Re)build canvases when displays or layouts changed since last time.
 function Overlay:_ensureViews()
   local infos = screens.all()
-  local sig = screens.signature(infos) .. "#" .. layouts.revision
+  local sig = screens.signature(infos) .. "#" .. layouts.revision .. "@" .. self.cfg.spacing
   if sig == self.signature then return end
 
   self:_destroyViews()

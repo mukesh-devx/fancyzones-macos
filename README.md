@@ -88,6 +88,7 @@ Toolbar (top of each display):
 - **‹ name ›** switches this display to the previous/next layout. Click the name to rename it inline.
 - **Templates** applies a starting point (full, 2/3 columns, priority, rows, 2×2 grid, main + side) to the current layout.
 - **New layout** adds a blank layout; **Delete layout** removes the current one (at least one must remain).
+- **Gap − / +** sets the space between snapped windows (and to the screen edges) in 2 pt steps, 0 to 48. The dashed outline inside each zone shows where the window will actually sit. The gap is part of Save/Cancel/undo like any other edit, and it applies to all layouts and displays.
 
 Nothing is written until you press Save, and Save refuses layouts that have no zones.
 
@@ -103,7 +104,7 @@ Pass overrides to `start`. Only the keys you set change.
 require("fancyzones").start{
   hotkey        = { mods = { "alt" }, key = "z" },
   snapModifiers = { "shift" },        -- try { "shift", "alt" } or { "ctrl" }
-  spacing       = 12,                 -- gap between windows, in points
+  spacing       = 12,                 -- default gap in points (the editor's Gap control overrides it once used)
   animationDuration = 0.14,           -- 0 = instant snap
   excludedApps  = { "com.apple.finder" },
   theme         = { accent = "#30D158" },
@@ -114,7 +115,7 @@ require("fancyzones").start{
 | --- | --- | --- |
 | `hotkey` | `{mods={"alt"}, key="z"}` | Opens/closes the editor. `nil` disables it. |
 | `snapModifiers` | `{"shift"}` | Modifier(s) held while dragging. Accepts `shift`, `alt`/`option`, `ctrl`/`control`, `cmd`/`command`. Extra modifiers are tolerated. |
-| `spacing` | `8` | Gap in points: full gap at screen edges, shared between neighbours. |
+| `spacing` | `8` | Starting gap in points: full gap at screen edges, shared between neighbours. A gap saved from the editor is remembered and wins over this value. |
 | `animationDuration` | `0.14` | Seconds for the window to glide into place. |
 | `fadeIn` / `fadeOut` | `0.10` / `0.12` | Overlay fade times. |
 | `dragThreshold` | `4` | Pointer travel (pt) before a drag is classified. |

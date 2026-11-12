@@ -84,6 +84,7 @@ function M.build(t)
     separator = M.withAlpha(white, 0.14),
 
     toastFill = M.withAlpha(black, 0.78),
+    previewStroke = M.withAlpha(white, 0.35),
   }
 end
 

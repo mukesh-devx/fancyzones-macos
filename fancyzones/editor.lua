@@ -17,6 +17,7 @@ local view = require("fancyzones.editor_view")
 local util = require("fancyzones.util")
 local permissions = require("fancyzones.permissions")
 local log = require("fancyzones.log")
+local config = require("fancyzones.config")
 
 local Editor = {}
 Editor.__index = Editor
@@ -103,6 +104,7 @@ function Editor:_resetState()
   self.lastNudge = 0
   self.measureCache = {}
   self.templates = layouts.templates()
+  self.spacing = self.cfg.spacing -- draft gap; applied on Save
 end
 
 function Editor:isActive() return self.isOpen end
@@ -233,6 +235,7 @@ function Editor:_snapshot()
     order = copyList(self.order),
     assign = copyMap(self.assign),
     sel = self.sel and { id = self.sel.id, index = self.sel.index } or nil,
+    spacing = self.spacing,
   }
 end
 
@@ -250,6 +253,7 @@ function Editor:_undo()
     return
   end
   self.drafts, self.order, self.assign, self.sel = snap.drafts, snap.order, snap.assign, snap.sel
+  self.spacing = snap.spacing
   self.dirty = #self.undo > 0
   self.gesture, self.renaming = nil, nil
   self:toast("Undone", 1.2)
@@ -260,6 +264,7 @@ function Editor:_cancelGesture()
   if not g then return end
   local snap = g.snapshot
   self.drafts, self.order, self.assign, self.sel = snap.drafts, snap.order, snap.assign, snap.sel
+  self.spacing = snap.spacing
   self.gesture = nil
 end
 
@@ -313,6 +318,8 @@ function Editor:_renderNow()
       hoverId = self.hoverId,
       pressedId = self.pressed and self.pressed.view == vi and self.pressed.id or nil,
       renaming = (self.renaming and self.renaming.view == vi) and self.renaming or nil,
+      spacing = self.spacing,
+      maxSpacing = config.MAX_SPACING,
       showTemplates = v.templatesOpen,
       templates = self.templates,
       toast = self.toastText,
@@ -736,6 +743,14 @@ function Editor:_activate(id, vi)
   elseif id == "deletelayout" then
     self:_deleteLayout(layoutId)
 
+  elseif id == "gapminus" or id == "gapplus" then
+    local step = id == "gapplus" and config.SPACING_STEP or -config.SPACING_STEP
+    local nxt = geometry.clamp(self.spacing + step, 0, config.MAX_SPACING)
+    if nxt ~= self.spacing then
+      self:_pushUndo()
+      self.spacing = nxt
+    end
+
   elseif id == "delzone" then
     self:_deleteSelectedZone()
 
@@ -836,6 +851,10 @@ function Editor:save()
     log.e("save failed:", err)
     self:toast("Could not save: " .. tostring(err), 4)
     return
+  end
+  if self.spacing ~= self.cfg.spacing then
+    self.cfg.spacing = self.spacing -- shared with overlay/snapper, takes effect immediately
+    hs.settings.set(config.SPACING_SETTING, self.spacing)
   end
   self:close(true)
 end

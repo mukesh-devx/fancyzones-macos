@@ -29,6 +29,7 @@ local function rounded(r) return { xRadius = r, yRadius = r } end
 ---   gesture     nil | { draft = <normalized rect|nil>, guides = {x=,y=} }
 ---   hoverId, pressedId   ids from `ui`
 ---   renaming    nil | { text = "..." }
+---   spacing, maxSpacing   gap in points (draft value) and its upper limit
 ---   showTemplates bool,  templates = { {id, name}, ... }
 ---   toast       nil | string
 ---   pal, cfg    palette and config
@@ -85,6 +86,15 @@ function M.build(ctx)
         text(string.format("%d × %d", geometry.round(r.w), geometry.round(r.h)),
           r.x, r.y + r.h / 2 + fs * 0.55, r.w, 11, pal.editTextDim)
       end
+    end
+    -- dashed outline: where the window will really sit once the gap is applied
+    if ctx.spacing > 0 then
+      local t = geometry.targetRect(z, fr, ctx.spacing)
+      add({
+        type = "rectangle", action = "stroke", roundedRectRadii = rounded(4),
+        strokeColor = pal.previewStroke, strokeWidth = 1, strokeDashPattern = { 3, 3 },
+        frame = lf(t.x + 0.5, t.y + 0.5, math.max(t.w - 1, 1), math.max(t.h - 1, 1)),
+      })
     end
     return r
   end
@@ -167,6 +177,10 @@ function M.build(ctx)
   items[#items + 1] = { id = "newlayout", label = "New layout", w = buttonWidth("New layout") }
   items[#items + 1] = { id = "deletelayout", label = "Delete layout", kind = "danger", w = buttonWidth("Delete layout") }
   items[#items + 1] = { sep = true }
+  items[#items + 1] = { id = "gapminus", label = "−", w = 30, disabled = ctx.spacing <= 0 }
+  items[#items + 1] = { label = "Gap " .. ctx.spacing, static = true, w = 64 }
+  items[#items + 1] = { id = "gapplus", label = "+", w = 30, disabled = ctx.spacing >= ctx.maxSpacing }
+  items[#items + 1] = { sep = true }
   items[#items + 1] = { id = "cancel", label = "Cancel", w = buttonWidth("Cancel") }
   items[#items + 1] = { id = "save", label = "Save", kind = "primary", w = buttonWidth("Save", 64) }
 
@@ -188,6 +202,11 @@ function M.build(ctx)
   end
 
   local function drawButton(it, x, y, h)
+    if it.static then -- plain label, not clickable
+      local th = TEXT * 1.3
+      text(it.label, x, y + (h - th) / 2, it.w, TEXT, pal.editText, "center", th)
+      return
+    end
     local hovered = ctx.hoverId == it.id and not it.disabled
     local pressed = ctx.pressedId == it.id and hovered
     local fill, color = pal.button, pal.editText
