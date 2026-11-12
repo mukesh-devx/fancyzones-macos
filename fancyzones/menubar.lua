@@ -3,6 +3,7 @@
 local screens = require("fancyzones.screens")
 local layouts = require("fancyzones.layouts")
 local permissions = require("fancyzones.permissions")
+local icon = require("fancyzones.icon")
 
 local Menubar = {}
 Menubar.__index = Menubar
@@ -25,10 +26,23 @@ function Menubar.new(ctrl)
   local self = setmetatable({ ctrl = ctrl }, Menubar)
   self.item = hs.menubar.new(true, "fancyzones")
   if not self.item then return nil end
-  self.item:setTitle("▦")
-  self.item:setTooltip("FancyZones")
   self.item:setMenu(function() return self:_build() end)
+  self:refresh()
   return self
+end
+
+--- Redraw the icon/tooltip to match the snapping state.
+function Menubar:refresh()
+  if not self.item then return end
+  local on = self.ctrl.isSnapping()
+  local image = icon.get(on)
+  if image then
+    self.item:setTitle(nil)
+    self.item:setIcon(image, true) -- template: follows light/dark menu bar
+  else
+    self.item:setTitle(on and "FZ" or "fz") -- icon could not be drawn: plain text fallback
+  end
+  self.item:setTooltip(on and "FancyZones: snapping on" or "FancyZones: snapping off")
 end
 
 function Menubar:_layoutItems(info)

@@ -94,7 +94,7 @@ Nothing is written until you press Save, and Save refuses layouts that have no z
 
 ### Menu bar
 
-The `▦` item opens the editor, toggles snapping (remembered across restarts), switches the layout per display, opens the layouts folder and reloads the config.
+The menu bar icon (a screen split into one tall and two small zones; solid when snapping is on, outlined when it is off) opens the editor, toggles snapping (remembered across restarts), switches the layout per display, opens the layouts folder and reloads the config. It is a template image, so macOS tints it correctly on light and dark menu bars.
 
 ## Configuration
 

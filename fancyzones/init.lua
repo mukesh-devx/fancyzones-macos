@@ -124,6 +124,7 @@ function M.setSnappingEnabled(flag)
   flag = flag and true or false
   state.snapper:setEnabled(flag)
   hs.settings.set(SETTING_ENABLED, flag)
+  if state.menubar then state.menubar:refresh() end
   hs.alert.show(flag and "FancyZones snapping on" or "FancyZones snapping off", 1)
 end
 
