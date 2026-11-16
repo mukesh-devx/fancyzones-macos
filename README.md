@@ -9,7 +9,7 @@ Built natively in Lua on top of [Hammerspoon](https://www.hammerspoon.org).
 [![macOS](https://img.shields.io/badge/macOS-12.0+-blue?style=flat-square&logo=apple&logoColor=white)](https://apple.com/macos)
 [![Hammerspoon](https://img.shields.io/badge/Hammerspoon-1.0+-orange?style=flat-square&logo=lua&logoColor=white)](https://www.hammerspoon.org)
 [![License: MIT](https://img.shields.io/badge/License-MIT-green?style=flat-square)](LICENSE)
-[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](https://github.com)
+[![PRs Welcome](https://img.shields.io/badge/PRs-welcome-brightgreen?style=flat-square)](https://github.com/mukesh-devx/fancyzones-macos)
 
 [Features](#-key-features) • [Installation](#-installation) • [Usage](#-how-to-use) • [Editor Guide](#-visual-zone-editor) • [Configuration](#-configuration) • [Architecture](#-codebase-architecture)
 
@@ -46,8 +46,8 @@ Built natively in Lua on top of [Hammerspoon](https://www.hammerspoon.org).
 Clone the repository and run the automated installer:
 
 ```sh
-git clone https://github.com/your-username/fancyzones-hammerspoon.git
-cd fancyzones-hammerspoon
+git clone https://github.com/mukesh-devx/fancyzones-macos.git
+cd fancyzones-macos
 ./install.sh
 ```
 
