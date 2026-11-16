@@ -16,6 +16,23 @@ Overlay.__index = Overlay
 local EASE = 0.38      -- fraction of the remaining distance covered per frame
 local FRAME = 1 / 60
 
+local function spaceSignature(infos)
+  local ok, spaces = pcall(require, "hs.spaces")
+  if not (ok and spaces) then return "" end
+  local parts = {}
+  for _, info in ipairs(infos) do
+    local okSpace, sp = pcall(spaces.activeSpaceOnScreen, info.screen)
+    if okSpace and sp then
+      parts[#parts + 1] = info.key .. ":" .. tostring(sp)
+    end
+  end
+  if #parts == 0 and spaces.focusedSpace then
+    local okFocus, sp = pcall(spaces.focusedSpace)
+    if okFocus and sp then parts[1] = tostring(sp) end
+  end
+  return table.concat(parts, ",")
+end
+
 function Overlay.new(cfg, palette)
   return setmetatable({
     cfg = cfg,
@@ -38,7 +55,7 @@ function Overlay:_buildView(info, layout)
 
   local canvas = hs.canvas.new(info.full)
   canvas:level(hs.canvas.windowLevels.overlay)
-  canvas:behavior({ "canJoinAllSpaces", "fullScreenAuxiliary" })
+  canvas:behavior({ "canJoinAllSpaces", "stationary", "fullScreenAuxiliary" })
   -- No mouseCallback is set, so the canvas ignores the mouse and the window
   -- being dragged keeps receiving the drag.
 
@@ -85,10 +102,10 @@ function Overlay:_destroyViews()
   self.hover = nil
 end
 
---- (Re)build canvases when displays or layouts changed since last time.
+--- (Re)build canvases when displays, spaces or layouts changed since last time.
 function Overlay:_ensureViews()
   local infos = screens.all()
-  local sig = screens.signature(infos) .. "#" .. layouts.revision .. "@" .. self.cfg.spacing
+  local sig = screens.signature(infos) .. "#" .. layouts.revision .. "@" .. self.cfg.spacing .. "$" .. spaceSignature(infos)
   if sig == self.signature then return end
 
   self:_destroyViews()
@@ -156,7 +173,10 @@ function Overlay:show()
   if self.visible then return end
   self:_ensureViews()
   self:_resetLevels()
-  for _, v in ipairs(self.views) do v.canvas:show(self.cfg.fadeIn) end
+  for _, v in ipairs(self.views) do
+    v.canvas:show(self.cfg.fadeIn)
+    v.canvas:bringToFront(true)
+  end
   self.visible = true
 end
 
@@ -168,6 +188,25 @@ function Overlay:hide()
 end
 
 function Overlay:isVisible() return self.visible end
+
+--- Called when active Space changes (Mission Control desktop switch).
+function Overlay:onSpaceChanged()
+  if self.visible then
+    -- When a drag crosses into a new space, re-assert visibility so zones stay on top.
+    for _, v in ipairs(self.views) do
+      v.canvas:show()
+      v.canvas:bringToFront(true)
+    end
+    local infos = {}
+    for i, v in ipairs(self.views) do infos[i] = v.info end
+    self.signature = screens.signature(infos) .. "#" .. layouts.revision .. "@" .. self.cfg.spacing .. "$" .. spaceSignature(infos)
+  else
+    -- Space switched while idle: invalidate and destroy cached canvases
+    -- so that when the user next starts dragging on this space, fresh canvases
+    -- are constructed cleanly in the active space's window server context.
+    self:_destroyViews()
+  end
+end
 
 local function setHover(self, view, index)
   local cur = self.hover

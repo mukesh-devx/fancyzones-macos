@@ -80,6 +80,20 @@ function M.start(userConfig)
   end)
   state.screenWatcher:start()
 
+  -- Spaces switched: ensure overlay/editor canvases stay visible and clean across spaces.
+  local hasSpaces, spaces = pcall(require, "hs.spaces")
+  if hasSpaces and spaces and spaces.watcher then
+    state.spaceWatcher = spaces.watcher.new(function()
+      if state.editor and state.editor.isOpen then
+        state.editor:onSpaceChanged()
+      end
+      if state.overlay then
+        state.overlay:onSpaceChanged()
+      end
+    end)
+    state.spaceWatcher:start()
+  end
+
   if cfg.menubar then
     state.menubar = Menubar.new({
       cfg = cfg,
@@ -102,6 +116,7 @@ function M.stop()
   permissions.cancel()
   if state.hotkey then state.hotkey:delete() end
   if state.screenWatcher then state.screenWatcher:stop() end
+  if state.spaceWatcher then state.spaceWatcher:stop() end
   if state.editor then state.editor:close(false) end
   if state.snapper then state.snapper:stop() end
   if state.overlay then state.overlay:destroy() end

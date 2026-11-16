@@ -142,7 +142,7 @@ function Editor:open()
   for _, info in ipairs(infos) do
     local canvas = hs.canvas.new(info.full)
     canvas:level(hs.canvas.windowLevels.overlay)
-    canvas:behavior({ "canJoinAllSpaces", "fullScreenAuxiliary" })
+    canvas:behavior({ "canJoinAllSpaces", "stationary", "fullScreenAuxiliary" })
     canvas:canvasDefaultFor("textFont", self.pal.font)
     canvas:canvasDefaultFor("textSize", 13)
     self.views[#self.views + 1] = { info = info, canvas = canvas, ui = {}, templatesOpen = false }
@@ -169,7 +169,10 @@ function Editor:open()
   if self.hooks.onOpen then self.hooks.onOpen() end
 
   self:_renderNow()
-  for _, v in ipairs(self.views) do v.canvas:show(self.cfg.fadeIn) end
+  for _, v in ipairs(self.views) do
+    v.canvas:show(self.cfg.fadeIn)
+    v.canvas:bringToFront(true)
+  end
 
   if hs.eventtap.isSecureInputEnabled() then
     self:toast("Secure input is active: keyboard shortcuts are unavailable. Use the buttons.", 5)
@@ -215,6 +218,15 @@ function Editor:onScreensChanged()
   if self.isOpen then
     hs.alert.show("Display configuration changed. Zone editor closed without saving.", 3)
     self:close(false)
+  end
+end
+
+--- Space switched while editing: keep canvas on front of the new active space.
+function Editor:onSpaceChanged()
+  if not self.isOpen then return end
+  for _, v in ipairs(self.views) do
+    v.canvas:show()
+    v.canvas:bringToFront(true)
   end
 end
 
