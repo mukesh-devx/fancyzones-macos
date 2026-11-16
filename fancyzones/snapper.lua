@@ -7,9 +7,8 @@
 ---   2. While the snap modifier is held during leftMouseDragged we pick the
 ---      window under the pointer and compare its frame between two samples.
 ---      If it moved along with the pointer and kept its size, the user is
----      dragging that window by its title bar. If it did not move (text
----      selection, scrollbar, ...) or its size changed (a resize), the drag is
----      ignored. Nothing expensive happens unless the modifier is held.
+---      dragging that window by its title bar. If its size changed (a resize),
+---      the drag is ignored.
 ---   3. Releasing the modifier hides the overlay; releasing the mouse over a
 ---      highlighted zone snaps the window there.
 --- The tap callback never consumes events (always returns false), so apps keep
@@ -23,9 +22,8 @@ local log = require("fancyzones.log")
 local Snapper = {}
 Snapper.__index = Snapper
 
-local SAMPLE_INTERVAL = 0.03 -- seconds between window-frame samples while classifying
-local FOLLOW_RATIO = 0.5      -- window must travel at least this fraction of the pointer
-local GIVE_UP_DISTANCE = 48   -- pointer travel after which a non-following window is ignored
+local SAMPLE_INTERVAL = 0.02 -- seconds between window-frame samples while classifying
+local FOLLOW_RATIO = 0.4      -- window must travel at least this fraction of the pointer
 
 function Snapper.new(cfg, overlay)
   local self = setmetatable({
@@ -204,18 +202,19 @@ function Snapper:_classify(pt)
   if dist < self.cfg.dragThreshold then return end
 
   local f = st.win:frame()
-  if math.abs(f.w - s1.w) > 2 or math.abs(f.h - s1.h) > 2 then
+  if math.abs(f.w - s1.w) > 4 or math.abs(f.h - s1.h) > 4 then
     st.winState = "rejected" -- a resize, not a move
     return
   end
 
   local wx, wy = f.x - s1.x, f.y - s1.y
   local wdist = math.sqrt(wx * wx + wy * wy)
-  if wx * dx + wy * dy > 0 and wdist >= dist * FOLLOW_RATIO then
+  if (wx * dx + wy * dy > 0 and wdist >= dist * FOLLOW_RATIO) or wdist >= self.cfg.dragThreshold then
     st.winState = "moving"
     self:_activate(pt)
-  elseif dist > GIVE_UP_DISTANCE then
-    st.winState = "rejected" -- pointer moved a lot, window did not: not a window drag
+  elseif dist > 120 then
+    -- If pointer moved but window started late (macOS IPC lag), refresh reference point
+    st.s1 = { pt = { x = pt.x, y = pt.y }, x = f.x, y = f.y, w = f.w, h = f.h }
   end
 end
 

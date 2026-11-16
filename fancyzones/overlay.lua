@@ -55,7 +55,7 @@ function Overlay:_buildView(info, layout)
 
   local canvas = hs.canvas.new(info.full)
   canvas:level(hs.canvas.windowLevels.overlay)
-  canvas:behavior({ "canJoinAllSpaces", "stationary", "fullScreenAuxiliary" })
+  canvas:behavior({ "canJoinAllSpaces", "fullScreenAuxiliary" })
   -- No mouseCallback is set, so the canvas ignores the mouse and the window
   -- being dragged keeps receiving the drag.
 
